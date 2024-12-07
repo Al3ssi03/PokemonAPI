@@ -1,5 +1,15 @@
 import sqlite3
 import pandas as pd
+from sqlalchemy import create_engine
+
+
+def insert_data(engine,df_dict):
+    with engine.connect() as connection:
+        for table_name, dataframe in df_dict.items():
+            dataframe.to_sql(table_name, con=connection, if_exists='append', index=False)
+    print("Inserimento completato con successo.")
+
+
 
 # Connessione a un database (se non esiste, verrà creato)
 def CreateAndInsertDB(df_pokemon,df_types,df_abilities,df_pokemon_abilities,df_pokemon_types,df_types_damage):
@@ -61,33 +71,22 @@ def CreateAndInsertDB(df_pokemon,df_types,df_abilities,df_pokemon_abilities,df_p
         );
     ''')
     #inserimento in DB
-        insert_from_dataframe(cursor, 'pokemon', df_pokemon)
-        insert_from_dataframe(cursor, 'types', df_types)
-        insert_from_dataframe(cursor, 'abilities', df_abilities)
-        insert_from_dataframe(cursor, 'pokemon_abilities_relations', df_pokemon_abilities)
-        insert_from_dataframe(cursor, 'pokemon_types_relations', df_pokemon_types)
-        insert_from_dataframe(cursor, 'types_damage_relations', df_types_damage)
-
+    
+    
+        engine = create_engine('sqlite:///pokemon.db')
+        df_dict = {
+        'pokemon': df_pokemon,
+        'types': df_types,
+        'abilities': df_abilities,
+        'pokemon_abilities_relations': df_pokemon_abilities,
+        'pokemon_types_relations': df_pokemon_types,
+        'types_damage_relations': df_types_damage
+        }
+        insert_data(engine,df_dict)
+        
     # Commit delle modifiche
         connection.commit()
 
     # Chiusura della connessione
         connection.close()
     return connection
-
-
-def insert_from_dataframe(cursor, table_name, dataframe):
-    """
-    Inserisce i dati da un DataFrame in una tabella SQLite.
-
-    :param cursor: Oggetto del cursore SQLite.
-    :param table_name: Nome della tabella in cui inserire i dati.
-    :param dataframe: pandas.DataFrame con i dati da inserire.
-    """
-    columns = ", ".join(dataframe.columns)
-    placeholders = ", ".join(["?"] * len(dataframe.columns))
-    sql = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})"
-    
-    # Convertiamo il DataFrame in una lista di tuple
-    data = dataframe.to_records(index=False)
-    cursor.executemany(sql, data)

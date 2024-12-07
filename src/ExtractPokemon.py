@@ -53,7 +53,7 @@ def fetch_ability_info(ability_name):
 
 def fetch_first_gen_pokemon():
     all_pokemon = []
-    for pokemon_id in range(1, 151):  # Prima generazione 151
+    for pokemon_id in range(1, 152):  # Prima generazione 151
         pokemon = fetch_pokemon(pokemon_id)
         if pokemon:
             # Ottieni informazioni aggiuntive sui tipi e abilità richiamando gli altri endpoints
